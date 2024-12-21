@@ -1,174 +1,187 @@
 <template>
-  <view class="visa-application">
-    <!-- 签证产品选择部分 -->
-    <view class="visa-product-section">
-      <text class="section-title">越南电子签证申请</text>
-      
-      <view class="form-group">
-        <text class="label">停留天数</text>
-        <radio-group @change="bindDurationChange" class="radio-group">
-          <label class="radio-label" v-for="(item, index) in durations" :key="index">
-            <radio :value="item" :checked="durationIndex === index" color="#007AFF" />
-            <text>{{item}}</text>
-          </label>
-        </radio-group>
-      </view>
-
-      <view class="form-group">
-        <text class="label">办理工时</text>
-        <radio-group @change="bindProcessingTimeChange" class="radio-group">
-          <label class="radio-label" v-for="(item, index) in processingTimes" :key="index">
-            <radio :value="item" :checked="processingTimeIndex === index" color="#007AFF" />
-            <text>{{item}}</text>
-          </label>
-        </radio-group>
-      </view>
-
-      <view class="form-group">
-        <text class="label">入境次数</text>
-        <radio-group @change="bindEntryTypeChange" class="radio-group">
-          <label class="radio-label" v-for="(item, index) in entryTypes" :key="index">
-            <radio :value="item" :checked="entryTypeIndex === index" color="#007AFF" />
-            <text>{{item}}</text>
-          </label>
-        </radio-group>
-      </view>
-
-      <view class="form-group">
-        <text class="label">办理类型</text>
-        <radio-group @change="bindVisaTypeChange" class="radio-group">
-          <label class="radio-label" v-for="(item, index) in visaTypes" :key="index">
-            <radio :value="item" :checked="visaTypeIndex === index" color="#007AFF" />
-            <text>{{item}}</text>
-          </label>
-        </radio-group>
+  <view class="container">
+    <!-- 欢迎界面 -->
+    <view v-if="!started" class="welcome-screen">
+      <image class="background-image" src="/static/visa-bg.jpg" mode="aspectFill"></image>
+      <view class="welcome-content">
+        <text class="welcome-title">越南电子签证</text>
+        <text class="welcome-subtitle">快速便捷的在线申请服务</text>
+        <button class="start-button" @tap="startApplication">开始申请</button>
       </view>
     </view>
 
-    <!-- 护照上传部分 -->
-    <view v-if="step >= 2" class="passport-section">
-      <text class="section-title">护照信息</text>
-      <view class="upload-box" @tap="choosePassportImage">
-        <image v-if="visaForm.passportImage" :src="visaForm.passportImage" mode="aspectFit" class="preview-image"></image>
-        <text v-else>点击上传护照照片</text>
-      </view>
-
-      <!-- 添加客户信息表单 -->
-      <text class="section-title">客户信息</text>
-      <view class="form-group">
-        <text class="label">拼音姓名</text>
-        <input type="text" v-model="visaForm.customerInfo.pinyinName" placeholder="请输入拼音姓名" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">护照号</text>
-        <input type="text" v-model="visaForm.customerInfo.passportNo" placeholder="请输入护照号" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">中文姓名</text>
-        <input type="text" v-model="visaForm.customerInfo.chineseName" placeholder="请输入中文姓名" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">性别</text>
-        <radio-group @change="bindGenderChange" class="radio-group">
-          <label class="radio-label" v-for="(item, index) in genders" :key="index">
-            <radio :value="item" :checked="genderIndex === index" color="#007AFF" />
-            <text>{{item}}</text>
-          </label>
-        </radio-group>
-      </view>
-
-      <view class="form-group">
-        <text class="label">生日</text>
-        <picker mode="date" :value="visaForm.customerInfo.birthday" @change="bindBirthdayChange">
-          <view class="picker-value">
-            {{visaForm.customerInfo.birthday || '请选择日期'}}
-          </view>
-        </picker>
-      </view>
-
-      <view class="form-group">
-        <text class="label">国籍</text>
-        <input type="text" v-model="visaForm.customerInfo.nationality" placeholder="请输入国籍" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">有效期至</text>
-        <picker mode="date" :value="visaForm.customerInfo.passportExpiry" @change="bindExpiryChange">
-          <view class="picker-value">
-            {{visaForm.customerInfo.passportExpiry || '请选择日期'}}
-          </view>
-        </picker>
-      </view>
-
-      <view class="form-group">
-        <text class="label">发证日期</text>
-        <picker mode="date" :value="visaForm.customerInfo.passportIssueDate" @change="bindIssueDateChange">
-          <view class="picker-value">
-            {{visaForm.customerInfo.passportIssueDate || '请选择日期'}}
-          </view>
-        </picker>
-      </view>
-
-      <view class="form-group">
-        <text class="label">本人电话</text>
-        <input type="text" v-model="visaForm.customerInfo.phone" placeholder="请输入电话号码" />
-      </view>
-
-      <view class="form-group">
-        <text class="label">本人地址</text>
-        <input type="text" v-model="visaForm.customerInfo.address" placeholder="请输入地址" />
-      </view>
-    </view>
-
-    <!-- 照片上传部分 -->
-    <view v-if="step >= 3" class="photo-section">
-      <text class="section-title">证件照上传</text>
-      <view class="upload-box" @tap="choosePhotoImage">
-        <image v-if="visaForm.photo" :src="visaForm.photo" mode="aspectFit" class="preview-image"></image>
-        <text v-else>点击上传证件照</text>
-      </view>
-    </view>
-
-    <!-- 联系人信息 -->
-    <view v-if="step >= 4" class="contact-section">
-      <text class="section-title">紧急联系人信息</text>
-      <view class="form-group">
-        <text class="label">姓名</text>
-        <input type="text" v-model="visaForm.emergencyContact.name" placeholder="请输入联系人姓名" />
-      </view>
-      <view class="form-group">
-        <text class="label">地址</text>
-        <input type="text" v-model="visaForm.emergencyContact.address" placeholder="请输入联系人地址" />
-      </view>
-      <view class="form-group">
-        <text class="label">电话</text>
-        <input type="number" v-model="visaForm.emergencyContact.phone" placeholder="请输入联系人电话" />
-      </view>
-
-      <!-- 商务/工作签证额外信息 -->
-      <block v-if="visaForm.visaType !== 'tourist'">
-        <text class="section-title">公司信息</text>
+    <!-- 原有的签证申请表单 -->
+    <view v-else class="visa-application">
+      <!-- 签证产品选择部分 -->
+      <view class="visa-product-section">
+        <text class="section-title">越南电子签证申请</text>
+        
         <view class="form-group">
-          <text class="label">公司名称</text>
-          <input type="text" v-model="visaForm.companyInfo.name" placeholder="请输入公司名称" />
+          <text class="label">停留天数</text>
+          <radio-group @change="bindDurationChange" class="radio-group">
+            <label class="radio-label" v-for="(item, index) in durations" :key="index">
+              <radio :value="item" :checked="durationIndex === index" color="#007AFF" />
+              <text>{{item}}</text>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="form-group">
+          <text class="label">办理工时</text>
+          <radio-group @change="bindProcessingTimeChange" class="radio-group">
+            <label class="radio-label" v-for="(item, index) in processingTimes" :key="index">
+              <radio :value="item" :checked="processingTimeIndex === index" color="#007AFF" />
+              <text>{{item}}</text>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="form-group">
+          <text class="label">入境次数</text>
+          <radio-group @change="bindEntryTypeChange" class="radio-group">
+            <label class="radio-label" v-for="(item, index) in entryTypes" :key="index">
+              <radio :value="item" :checked="entryTypeIndex === index" color="#007AFF" />
+              <text>{{item}}</text>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="form-group">
+          <text class="label">办理类型</text>
+          <radio-group @change="bindVisaTypeChange" class="radio-group">
+            <label class="radio-label" v-for="(item, index) in visaTypes" :key="index">
+              <radio :value="item" :checked="visaTypeIndex === index" color="#007AFF" />
+              <text>{{item}}</text>
+            </label>
+          </radio-group>
+        </view>
+      </view>
+
+      <!-- 护照上传部分 -->
+      <view v-if="step >= 2" class="passport-section">
+        <text class="section-title">护照信息</text>
+        <view class="upload-box" @tap="choosePassportImage">
+          <image v-if="visaForm.passportImage" :src="visaForm.passportImage" mode="aspectFit" class="preview-image"></image>
+          <text v-else>点击上传护照照片</text>
+        </view>
+
+        <!-- 添加客户信息表单 -->
+        <text class="section-title">客户信息</text>
+        <view class="form-group">
+          <text class="label">拼音姓名</text>
+          <input type="text" v-model="visaForm.customerInfo.pinyinName" placeholder="请输入拼音姓名" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">护照号</text>
+          <input type="text" v-model="visaForm.customerInfo.passportNo" placeholder="请输入护照号" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">中文姓名</text>
+          <input type="text" v-model="visaForm.customerInfo.chineseName" placeholder="请输入中文姓名" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">性别</text>
+          <radio-group @change="bindGenderChange" class="radio-group">
+            <label class="radio-label" v-for="(item, index) in genders" :key="index">
+              <radio :value="item" :checked="genderIndex === index" color="#007AFF" />
+              <text>{{item}}</text>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="form-group">
+          <text class="label">生日</text>
+          <picker mode="date" :value="visaForm.customerInfo.birthday" @change="bindBirthdayChange">
+            <view class="picker-value">
+              {{visaForm.customerInfo.birthday || '请选择日期'}}
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-group">
+          <text class="label">国籍</text>
+          <input type="text" v-model="visaForm.customerInfo.nationality" placeholder="请输入国籍" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">有效期至</text>
+          <picker mode="date" :value="visaForm.customerInfo.passportExpiry" @change="bindExpiryChange">
+            <view class="picker-value">
+              {{visaForm.customerInfo.passportExpiry || '请选择日期'}}
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-group">
+          <text class="label">发证日期</text>
+          <picker mode="date" :value="visaForm.customerInfo.passportIssueDate" @change="bindIssueDateChange">
+            <view class="picker-value">
+              {{visaForm.customerInfo.passportIssueDate || '请选择日期'}}
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-group">
+          <text class="label">本人电话</text>
+          <input type="text" v-model="visaForm.customerInfo.phone" placeholder="请输入电话号码" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">本人地址</text>
+          <input type="text" v-model="visaForm.customerInfo.address" placeholder="请输入地址" />
+        </view>
+      </view>
+
+      <!-- 照片上传部分 -->
+      <view v-if="step >= 3" class="photo-section">
+        <text class="section-title">证件照上传</text>
+        <view class="upload-box" @tap="choosePhotoImage">
+          <image v-if="visaForm.photo" :src="visaForm.photo" mode="aspectFit" class="preview-image"></image>
+          <text v-else>点击上传证件照</text>
+        </view>
+      </view>
+
+      <!-- 联系人信息 -->
+      <view v-if="step >= 4" class="contact-section">
+        <text class="section-title">紧急联系人信息</text>
+        <view class="form-group">
+          <text class="label">姓名</text>
+          <input type="text" v-model="visaForm.emergencyContact.name" placeholder="请输入联系人姓名" />
         </view>
         <view class="form-group">
-          <text class="label">公司地址</text>
-          <input type="text" v-model="visaForm.companyInfo.address" placeholder="请输入公司地址" />
+          <text class="label">地址</text>
+          <input type="text" v-model="visaForm.emergencyContact.address" placeholder="请输入联系人地址" />
         </view>
         <view class="form-group">
-          <text class="label">公司电话</text>
-          <input type="number" v-model="visaForm.companyInfo.phone" placeholder="请输入公司电话" />
+          <text class="label">电话</text>
+          <input type="number" v-model="visaForm.emergencyContact.phone" placeholder="请输入联系人电话" />
         </view>
-      </block>
-    </view>
 
-    <!-- 提交按钮 -->
-    <view v-if="step >= 4" class="submit-section">
-      <button @tap="submitApplication" :disabled="!isFormValid" type="primary">提交订单</button>
+        <!-- 商务/工作签证额外信息 -->
+        <block v-if="visaForm.visaType !== 'tourist'">
+          <text class="section-title">公司信息</text>
+          <view class="form-group">
+            <text class="label">公司名称</text>
+            <input type="text" v-model="visaForm.companyInfo.name" placeholder="请输入公司名称" />
+          </view>
+          <view class="form-group">
+            <text class="label">公司地址</text>
+            <input type="text" v-model="visaForm.companyInfo.address" placeholder="请输入公司地址" />
+          </view>
+          <view class="form-group">
+            <text class="label">公司电话</text>
+            <input type="number" v-model="visaForm.companyInfo.phone" placeholder="请输入公司电话" />
+          </view>
+        </block>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view v-if="step >= 4" class="submit-section">
+        <button @tap="submitApplication" :disabled="!isFormValid" type="primary">提交订单</button>
+      </view>
     </view>
   </view>
 </template>
@@ -177,6 +190,7 @@
 export default {
   data() {
     return {
+      started: false,
       step: 1,
       durations: ['90天', '30天'],
       durationIndex: 0,
@@ -238,6 +252,9 @@ export default {
     }
   },
   methods: {
+    startApplication() {
+      this.started = true
+    },
     bindDurationChange(e) {
       const selectedValue = e.detail.value
       this.durationIndex = this.durations.indexOf(selectedValue)
@@ -270,10 +287,10 @@ export default {
         
         this.visaForm.passportImage = res.tempFilePaths[0]
         
-        // 这里调用护照识别API
+        // 这里���用护照识别API
         try {
           // const response = await this.recognizePassport(res.tempFilePaths[0])
-          // 模拟护照识别返回数��
+          // 模拟护照识别返回数
           this.visaForm.passportInfo = {
             passportNumber: 'E12345678',
             name: '测试姓名'
@@ -340,6 +357,68 @@ export default {
 </script>
 
 <style>
+.container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.welcome-screen {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.background-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 40rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20rpx;
+  width: 80%;
+}
+
+.welcome-title {
+  font-size: 48rpx;
+  color: #FFFFFF;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.welcome-subtitle {
+  font-size: 32rpx;
+  color: #FFFFFF;
+  margin-bottom: 60rpx;
+  display: block;
+}
+
+.start-button {
+  background: #007AFF;
+  color: #FFFFFF;
+  padding: 24rpx 80rpx;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
+}
+
+.start-button:active {
+  transform: scale(0.98);
+}
+
 .visa-application {
   padding: 30rpx 20rpx;
   background-color: #F5F5F5;
