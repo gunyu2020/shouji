@@ -1,0 +1,17 @@
+{
+	"pages": [
+		{
+			"path": "pages/visa-application/visa-application",
+			"style": {
+				"navigationBarTitleText": "签证申请"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}
